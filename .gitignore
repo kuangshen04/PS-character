@@ -1,33 +1,28 @@
-audio/*.TXT
-image/*.TXT
-!extension/boss
-!extension/cardpile
-!extension/coin
-!extension/wuxing
-!node_modules/@types
-!node_modules/noname-typings
-!node_modules/options
-!node_modules/ultron
-!node_modules/undici-types
-!node_modules/ws
-._*
-.DS_Store
-.DS_Store?
-.idea
-.Spotlight-V100
-.Trashes
 .vscode
-app
-app.html
-ehthumbs.db
-extension
-Home
-jsconfig.json
-localStorage.json
-main.js
-node_modules
-noname.ico
-package-lock.json
-package.json
+
+# 操作系统相关
 Thumbs.db
-bun.lockb
+.DS_Store
+Desktop.ini
+
+# 编辑器相关
+*.swp
+*.swo
+*~
+
+# 构建产物
+dist/
+build/
+*.exe
+*.dll
+*.so
+
+# 日志和临时文件
+*.log
+*.tmp
+temp/
+
+# 依赖目录（如果使用 Node.js）
+node_modules/
+
+# 敏感信息

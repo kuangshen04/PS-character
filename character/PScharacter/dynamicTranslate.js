@@ -56,8 +56,8 @@ const dynamicTranslate = {
 	PSshen_jihun: function (player) {
 		let str1 = '你受到伤害后';
 		let str2 = '其他角色脱离濒死状态后';
-		if (player.storage.PSshen_huashen.damage) str1 = `<del>${str1}</del>`;
-		if (player.storage.PSshen_huashen.dyingAfter) str2 = `<del>${str2}</del>`;
+		if (player.storage.PSshen_huashen?.damage) str1 = `<del>${str1}</del>`;
+		if (player.storage.PSshen_huashen?.dyingAfter) str2 = `<del>${str2}</del>`;
 		return `当[${str1}]，或[${str2}]，你可以将剩余武将牌堆的一张牌置于武将牌上，称为“魂”。`;
 	},
 	//PS神南华老仙〖道骨〗动态翻译

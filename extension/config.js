@@ -259,137 +259,137 @@ export let CONFIG = {
 	},
 
 	//编辑武将功能，搬运自“活动武将”，已得到原作者允许，感谢萌新（转型中）
-	"edit_PScharacters": {
-		name: '<ins>编辑将池</ins>',
-		"intro": '打开“编辑武将”功能页面',
-		clear: true,
-		onclick: function () {
-			var container = ui.create.div('.popup-container.editor');
-			var editorpage = ui.create.div(container);
-			var discardConfig = ui.create.div('.editbutton', '取消', editorpage, function () {
-				ui.window.classList.remove('shortcutpaused');
-				ui.window.classList.remove('systempaused');
-				container.delete(null);
-				delete window.saveNonameInput;
-			});
-			var node = container;
-			var map = lib.config.extension_PS武将_PScharacters || [];
-			var shed = lib.config.extension_PS武将_PSremoveCharacters || [];
-			var add = lib.config.extension_PS武将_PSaddCharacter || [];
-			var remove = lib.config.extension_PS武将_PSremoveCharacter || [];
-			var str = '//编辑将池，适用武将：PS赵襄、PS左慈、大魏吴王、PS许劭、双倍许劭、梦刘备、PS神孙权，请按照示例正确书写';
-			str += '\n//均用英文标点符号！！！\n';
-			str += '\n//PScharacters是添加的武将包，“[]”内填武将包名（武将包名可以在武将面板上查看），不写默认为全扩武将包'
-			str += '\n//示例：PScharacters = ["界限突破","PS武将","欢乐三国杀"];';
-			str += '\nPScharacters=[\n';
-			for (var i = 0; i < map.length; i++) {
-				str += '"' + map[i] + '",';
-				if (i + 1 < map.length && (i + 1) % 5 == 0) str += '\n';
-			}
-			str += '\n];\n';
-			str += '\n//PSremoveCharacters是移除的武将包，“[]”内填武将包名，示例同上';
-			str += '\nPSremoveCharacters=[\n';
-			for (var i = 0; i < shed.length; i++) {
-				str += '"' + shed[i] + '",';
-				if (i + 1 < shed.length && (i + 1) % 5 == 0) str += '\n';
-			}
-			str += '\n];\n';
-			str += '\n//PSaddCharacter是添加的武将，“[]”内填武将id'
-			str += '\n//示例：PSaddCharacter = ["liubei","guanyu","zhangfei"];';
-			str += '\nPSaddCharacter=[\n';
-			for (var i = 0; i < add.length; i++) {
-				str += '"' + add[i] + '",';
-				if (i + 1 < add.length && (i + 1) % 5 == 0) str += '\n';
-			}
-			str += '\n];\n';
-			str += '\n//PSremoveCharacter是移除的武将，“[]”内填武将id，示例同上'
-			str += '\nPSremoveCharacter=[\n';
-			for (var i = 0; i < remove.length; i++) {
-				str += '"' + remove[i] + '",';
-				if (i + 1 < remove.length && (i + 1) % 5 == 0) str += '\n';
-			}
-			str += '\n];\n';
-			str += '\n//将池 = （添加的武将包 - 移除的武将包）内的所有武将 + 添加的武将 - 移除的武将';
-			node.code = str;
-			ui.window.classList.add('shortcutpaused');
-			ui.window.classList.add('systempaused');
-			var saveInput = function () {
-				var code;
-				if (container.editor) {
-					code = container.editor.getValue();
-				}
-				else if (container.textarea) {
-					code = container.textarea.value;
-				}
-				try {
-					var PScharacters = null;
-					var PSremoveCharacters = null;
-					var PSaddCharacter = null;
-					var PSremoveCharacter = null;
-					eval(code);
-					if (!Array.isArray(PScharacters) || !Array.isArray(PSremoveCharacters) || !Array.isArray(PSaddCharacter) || !Array.isArray(PSremoveCharacter)) {
-						throw ('err');
-					}
-				}
-				catch (e) {
-					alert('代码语法有错误，请仔细检查（' + e + '）');
-					return;
-				}
-				game.saveConfig('extension_PS武将_PScharacters', PScharacters);
-				game.saveConfig('extension_PS武将_PSremoveCharacters', PSremoveCharacters);
-				game.saveConfig('extension_PS武将_PSaddCharacter', PSaddCharacter);
-				game.saveConfig('extension_PS武将_PSremoveCharacter', PSremoveCharacter);
-				ui.window.classList.remove('shortcutpaused');
-				ui.window.classList.remove('systempaused');
-				container.delete();
-				container.code = code;
-				delete window.saveNonameInput;
-			};
-			window.saveNonameInput = saveInput;
-			var saveConfig = ui.create.div('.editbutton', '保存', editorpage, saveInput);
-			var editor = ui.create.div(editorpage);
-			if (node.aced) {
-				ui.window.appendChild(node);
-				node.editor.setValue(node.code, 1);
-			}
-			else if (lib.device == 'ios') {
-				ui.window.appendChild(node);
-				if (!node.textarea) {
-					var textarea = document.createElement('textarea');
-					editor.appendChild(textarea);
-					node.textarea = textarea;
-					lib.setScroll(textarea);
-				}
-				node.textarea.value = node.code;
-			}
-			else {
-				var aceReady = function () {
-					ui.window.appendChild(node);
-					var mirror = window.CodeMirror(editor, {
-						value: node.code,
-						mode: "javascript",
-						lineWrapping: !lib.config.touchscreen && lib.config.mousewheel,
-						lineNumbers: true,
-						indentUnit: 4,
-						autoCloseBrackets: true,
-						theme: 'mdn-like'
-					});
-					lib.setScroll(editor.querySelector('.CodeMirror-scroll'));
-					node.aced = true;
-					node.editor = mirror;
-				}
-				if (!window.ace) {
-					import('../../../game/codemirror.js').then(() => {
-						aceReady();
-					});
-					lib.init.css(lib.assetURL + 'layout/default', 'codemirror');
-				}
-				else {
-					aceReady();
-				}
-			};
-		},
-	},
+	// "edit_PScharacters": {
+	// 	name: '<ins>编辑将池</ins>',
+	// 	"intro": '打开“编辑武将”功能页面',
+	// 	clear: true,
+	// 	onclick: function () {
+	// 		var container = ui.create.div('.popup-container.editor');
+	// 		var editorpage = ui.create.div(container);
+	// 		var discardConfig = ui.create.div('.editbutton', '取消', editorpage, function () {
+	// 			ui.window.classList.remove('shortcutpaused');
+	// 			ui.window.classList.remove('systempaused');
+	// 			container.delete(null);
+	// 			delete window.saveNonameInput;
+	// 		});
+	// 		var node = container;
+	// 		var map = lib.config.extension_PS武将_PScharacters || [];
+	// 		var shed = lib.config.extension_PS武将_PSremoveCharacters || [];
+	// 		var add = lib.config.extension_PS武将_PSaddCharacter || [];
+	// 		var remove = lib.config.extension_PS武将_PSremoveCharacter || [];
+	// 		var str = '//编辑将池，适用武将：PS赵襄、PS左慈、大魏吴王、PS许劭、双倍许劭、梦刘备、PS神孙权，请按照示例正确书写';
+	// 		str += '\n//均用英文标点符号！！！\n';
+	// 		str += '\n//PScharacters是添加的武将包，“[]”内填武将包名（武将包名可以在武将面板上查看），不写默认为全扩武将包'
+	// 		str += '\n//示例：PScharacters = ["界限突破","PS武将","欢乐三国杀"];';
+	// 		str += '\nPScharacters=[\n';
+	// 		for (var i = 0; i < map.length; i++) {
+	// 			str += '"' + map[i] + '",';
+	// 			if (i + 1 < map.length && (i + 1) % 5 == 0) str += '\n';
+	// 		}
+	// 		str += '\n];\n';
+	// 		str += '\n//PSremoveCharacters是移除的武将包，“[]”内填武将包名，示例同上';
+	// 		str += '\nPSremoveCharacters=[\n';
+	// 		for (var i = 0; i < shed.length; i++) {
+	// 			str += '"' + shed[i] + '",';
+	// 			if (i + 1 < shed.length && (i + 1) % 5 == 0) str += '\n';
+	// 		}
+	// 		str += '\n];\n';
+	// 		str += '\n//PSaddCharacter是添加的武将，“[]”内填武将id'
+	// 		str += '\n//示例：PSaddCharacter = ["liubei","guanyu","zhangfei"];';
+	// 		str += '\nPSaddCharacter=[\n';
+	// 		for (var i = 0; i < add.length; i++) {
+	// 			str += '"' + add[i] + '",';
+	// 			if (i + 1 < add.length && (i + 1) % 5 == 0) str += '\n';
+	// 		}
+	// 		str += '\n];\n';
+	// 		str += '\n//PSremoveCharacter是移除的武将，“[]”内填武将id，示例同上'
+	// 		str += '\nPSremoveCharacter=[\n';
+	// 		for (var i = 0; i < remove.length; i++) {
+	// 			str += '"' + remove[i] + '",';
+	// 			if (i + 1 < remove.length && (i + 1) % 5 == 0) str += '\n';
+	// 		}
+	// 		str += '\n];\n';
+	// 		str += '\n//将池 = （添加的武将包 - 移除的武将包）内的所有武将 + 添加的武将 - 移除的武将';
+	// 		node.code = str;
+	// 		ui.window.classList.add('shortcutpaused');
+	// 		ui.window.classList.add('systempaused');
+	// 		var saveInput = function () {
+	// 			var code;
+	// 			if (container.editor) {
+	// 				code = container.editor.getValue();
+	// 			}
+	// 			else if (container.textarea) {
+	// 				code = container.textarea.value;
+	// 			}
+	// 			try {
+	// 				var PScharacters = null;
+	// 				var PSremoveCharacters = null;
+	// 				var PSaddCharacter = null;
+	// 				var PSremoveCharacter = null;
+	// 				eval(code);
+	// 				if (!Array.isArray(PScharacters) || !Array.isArray(PSremoveCharacters) || !Array.isArray(PSaddCharacter) || !Array.isArray(PSremoveCharacter)) {
+	// 					throw ('err');
+	// 				}
+	// 			}
+	// 			catch (e) {
+	// 				alert('代码语法有错误，请仔细检查（' + e + '）');
+	// 				return;
+	// 			}
+	// 			game.saveConfig('extension_PS武将_PScharacters', PScharacters);
+	// 			game.saveConfig('extension_PS武将_PSremoveCharacters', PSremoveCharacters);
+	// 			game.saveConfig('extension_PS武将_PSaddCharacter', PSaddCharacter);
+	// 			game.saveConfig('extension_PS武将_PSremoveCharacter', PSremoveCharacter);
+	// 			ui.window.classList.remove('shortcutpaused');
+	// 			ui.window.classList.remove('systempaused');
+	// 			container.delete();
+	// 			container.code = code;
+	// 			delete window.saveNonameInput;
+	// 		};
+	// 		window.saveNonameInput = saveInput;
+	// 		var saveConfig = ui.create.div('.editbutton', '保存', editorpage, saveInput);
+	// 		var editor = ui.create.div(editorpage);
+	// 		if (node.aced) {
+	// 			ui.window.appendChild(node);
+	// 			node.editor.setValue(node.code, 1);
+	// 		}
+	// 		else if (lib.device == 'ios') {
+	// 			ui.window.appendChild(node);
+	// 			if (!node.textarea) {
+	// 				var textarea = document.createElement('textarea');
+	// 				editor.appendChild(textarea);
+	// 				node.textarea = textarea;
+	// 				lib.setScroll(textarea);
+	// 			}
+	// 			node.textarea.value = node.code;
+	// 		}
+	// 		else {
+	// 			var aceReady = function () {
+	// 				ui.window.appendChild(node);
+	// 				var mirror = window.CodeMirror(editor, {
+	// 					value: node.code,
+	// 					mode: "javascript",
+	// 					lineWrapping: !lib.config.touchscreen && lib.config.mousewheel,
+	// 					lineNumbers: true,
+	// 					indentUnit: 4,
+	// 					autoCloseBrackets: true,
+	// 					theme: 'mdn-like'
+	// 				});
+	// 				lib.setScroll(editor.querySelector('.CodeMirror-scroll'));
+	// 				node.aced = true;
+	// 				node.editor = mirror;
+	// 			}
+	// 			if (!window.ace) {
+	// 				import('codemirror').then(() => {
+	// 					aceReady();
+	// 				});
+	// 				lib.init.css(lib.assetURL + 'layout/default', 'codemirror');
+	// 			}
+	// 			else {
+	// 				aceReady();
+	// 			}
+	// 		};
+	// 	},
+	// },
 
 	/* "PS_joinUs": {
 	  "clear": true,

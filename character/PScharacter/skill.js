@@ -3251,19 +3251,19 @@ const skills = {
 			for (var i in player.storage.PShuashen.map) {
 				skills.addArray(player.storage.PShuashen.map[i]);
 			}
-			var cond = 'out';
+			event.cond = 'out';
 			if (event.triggername == 'phaseBegin') {
-				cond = 'in';
+				event.cond = 'in';
 			}
 			skills.randomSort();
 			//技能根据优先度排序
 			skills.sort(function (a, b) {
-				return get.skillRank(b, cond) - get.skillRank(a, cond);
+				return get.skillRank(b, event.cond) - get.skillRank(a, event.cond);
 			});
 			event.aiSkills = skills.slice();
 			event.aiChoice = skills[0];
 			var choice = '更换技能';
-			if (event.aiChoice == player.storage.PShuashen.current2 || get.skillRank(event.aiChoice, cond) < 1 || Math.random() < 0.3) choice = '制衡化身';
+			if (event.aiChoice == player.storage.PShuashen.current2 || get.skillRank(event.aiChoice, event.cond) < 1 || Math.random() < 0.3) choice = '制衡化身';
 			if (player.isOnline2()) {
 				player.send(function (cards, id) {
 					var dialog = ui.create.dialog('是否发动【化身】？', [cards, (item, type, position, noclick, node) => lib.skill.PShuashen.$createButton(item, type, position, noclick, node)]);
@@ -3457,7 +3457,7 @@ const skills = {
 						else {
 							event.aiSkills.randomSort();
 							event.aiSkills.sort(function (a, b) {
-								return get.skillRank(b, cond) - get.skillRank(a, cond);
+								return get.skillRank(b, event.cond) - get.skillRank(a, event.cond);
 							});
 							event.aiChoice = event.aiSkills[0];
 						}
@@ -14933,7 +14933,7 @@ const skills = {
 			const choiceList = skills.map(skill => get.translation(skill) + '：' + get.translation(skill + '_info'));
 			const { result: { control } } = await player.chooseControl(skills)
 				.set('prompt', '忍戒：选择获得一个技能')
-				.set('choiceList', choiceList).set('displayIndex', false).set('ai', () => get.event('controls').randomGet());
+				.set('choiceList', choiceList).set('displayIndex', false).set('ai', () => get.event().controls.randomGet());
 			await player.addSkills(control);
 			player.storage.PSrenjie--;
 			if (player.storage.PSrenjie > 0) {

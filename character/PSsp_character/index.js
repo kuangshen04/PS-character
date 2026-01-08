@@ -30,7 +30,7 @@ game.import("character", function (lib, game, ui, get, ai, _status) {
 		window.PScharacter.characters.push(i);
 		const character = PSsp_character.character[i];
 		character.trashBin.push(
-			(lib.device || lib.node ? "ext:" : "db:extension-") + `PS武将/image/character/${i}.jpg`
+			`ext:PS武将/image/character/${i}.jpg`
 		);
 		if (i.includes("PS") && !PSsp_character.translate[i + "_prefix"]) {
 			lib.translate[i + "_prefix"] = i.includes("PSshen_") ? "PS神" : "PS";

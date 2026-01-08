@@ -32,7 +32,8 @@ game.import("character", function (lib, game, ui, get, ai, _status) {
 		window.PScharacter.characters.push(i);
 		const character = PScharacter.character[i];
 		character.trashBin.push(
-			(lib.device || lib.node ? "ext:" : "db:extension-") + `PS武将/image/character/${i}.jpg`
+			// (lib.device || lib.node ? "ext:" : "db:extension-") + `PS武将/image/character/${i}.jpg`
+			`ext:PS武将/image/character/${i}.jpg`
 		);
 		if (!character.dieAudios.length) {
 			character.dieAudios.push(i.replace("PS", ""));
