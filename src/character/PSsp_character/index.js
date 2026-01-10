@@ -1,44 +1,54 @@
 import { lib, game, ui, get, ai, _status } from 'noname'
-import character from "./character.js";
-import card from "./card.js";
-import characterTitle from "./characterTitle.js";
-import { characterSort, sortTranslation } from "./sort.js";
-import characterIntro from "./characterIntro.js";
-import skill from "./skill.js";
-import { characterTranslation, skillTranslation } from './translate.js'
-import voices from "./voices.js";
-import dynamicTranslate from "./dynamicTranslate.js";
+import { convertDataToOptions } from "../../utils/convert.js"
+import { pack, data } from "./data.js"
+import { onContent } from "../../utils/hooks.js"
 
-"use strict";
-game.import("character", function (lib, game, ui, get, ai, _status) {
-	var PSsp_character = {
-		name: "PSsp_character",
-		connect: true,
-		characterSort,
+const {
+	character,
+	characterFilter,
+	characterIntro,
+	characterReplace,
+	characterSubstitute,
+	characterTitle,
+	translate,
+	dynamicTranslate,
+	rank: { junk, rare, epic, legend },
+	skill,
+	characterSort,
+} = convertDataToOptions(pack, data);
+
+await game.import("character", function () {
+	return {
+		name: pack.name,
 		character,
-		characterIntro, //武将介绍
-		characterTitle, //武将称号
-		characterReplace: {}, //武将切换
-		characterFilter: {}, //武将在特定模式下禁用
-		perfectPair: {}, //珠联璧合
-		card,
-		skill,
-		translate: { ...sortTranslation, ...characterTranslation, ...skillTranslation, ...voices },
+		characterFilter,
+		characterIntro,
+		characterReplace,
+		characterTitle,
+		characterSubstitute,
+		translate,
 		dynamicTranslate,
+		skill,
+		perfectPair: {}, //珠联璧合
+		card: {
+			PSsp_blank: {
+				type: null,
+				ai: {
+					basic: {
+						useful: 0,
+						value: 0.1,
+					},
+				},
+			},
+		}, // 卡牌
+		characterSort,
 	};
-	Object.keys(PSsp_character.character).forEach(i => {
-		window.PScharacter.characters.push(i);
-		const character = PSsp_character.character[i];
-		character.trashBin.push(
-			`ext:PS武将/image/character/${i}.jpg`
-		);
-		if (i.includes("PS") && !PSsp_character.translate[i + "_prefix"]) {
-			lib.translate[i + "_prefix"] = i.includes("PSshen_") ? "PS神" : "PS";
-		}
-	})
-	return PSsp_character;
 });
 
-lib.config.all.characters.push("PSsp_character");
-lib.translate["PSsp_character_character_config"] = "PS特殊武将";
+onContent(() => {
+	lib.rank.rarity.junk.addArray(junk || []);
+	lib.rank.rarity.rare.addArray(rare || []);
+	lib.rank.rarity.epic.addArray(epic || []);
+	lib.rank.rarity.legend.addArray(legend || []);
+});
 
