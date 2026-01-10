@@ -4,9 +4,10 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
 
 export default defineConfig(({ command, mode }) => {
-    let isDev = command === "serve" || mode === "development"; // 判断是否为开发模式
+    // let isDev = command === "serve" || mode === "development"; // 判断是否为开发模式
     // isDev = true; // 强制开发模式，方便调试
 
+    const isDev = false
     return {
         plugins: [
             viteStaticCopy({
@@ -27,7 +28,7 @@ export default defineConfig(({ command, mode }) => {
             minify: !isDev && "terser", // 开发环境，禁用压缩，方便调试
             sourcemap: true, // 启用 source map 生成
             rollupOptions: {
-                external: ["vue", "noname"],
+                external: ["noname", "vue"],
                 input: "extension.js", // 入口文件
                 output: {
                     entryFileNames: "extension.js",
@@ -44,6 +45,7 @@ export default defineConfig(({ command, mode }) => {
         // css: {
         // 	devSourcemap: isDev, // 映射 CSS 到原始文件
         // },
+
         terserOptions: {
             compress: {
                 drop_console: !isDev, // 删除所有 console.* 调用

@@ -1,1 +1,4 @@
-export {type, default} from "./src/extension.js";
+import ext from "./src/extension.js";
+import { game } from "noname";
+
+game.import("extension", ext);
