@@ -49,7 +49,6 @@ export function convertDataToOptions(pack, data) {
 	return options;
 }
 
-
 /* <-------------------------花色符号染色-------------------------> */
 /**
  * 获取牌的花色数

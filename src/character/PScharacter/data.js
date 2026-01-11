@@ -15359,7 +15359,7 @@ export const data = {
                 filter: function (event, player) {
                     return game.hasPlayer(current => current != player && (current.countCards('e') > 0 || current.countGainableCards(player, 'h') > 0));
                 },
-                filterTarget: () => lib.filter.notMe,
+                filterTarget: (c, p, t) => lib.filter.notMe(c, p, t),
                 content: function () {
                     'step 0'
                     player.awakenSkill('PSxiqu');
