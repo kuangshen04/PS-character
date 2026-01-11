@@ -1,4 +1,9 @@
 {
+	"2.4.0": {
+		"changeLog": ["/setPlayer/", "将露头的武将图全部替换为非露头的", "优化文件结构", "修复了已知的bug"],
+		"players": [],
+		"cards": []
+	},
 	"2.3.0": {
 		"changeLog": ["/setPlayer/", "新增了武将：PS谋张飞、PS寒冰剑少女"],
 		"players": ["PSsb_zhangfei", "PShanbingjiangirl"],
