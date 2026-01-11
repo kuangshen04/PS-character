@@ -21938,5 +21938,665 @@ export const data = {
             PSxieshou_info: "锁定技，你不能成为【决斗】的目标且不能使用【决斗】。当你响应牌后，你可以令一名拥有技能〖协守〗的其他角色摸一张牌；当你弃置手牌后，你可以将其中至多X张弃置牌交给给同势力或拥有〖协守〗的角色（X为你的体力值）。"
         },
         rank: rank.rare
+    },
+    PSsb_zhangfei: {
+        info: {
+            sex: "male",
+            group: "shu",
+            hp: 4,
+            skills: ["PSsheming", "PSkuangli", "PSjinxi"],
+            dieAudios: [],
+            trashBin: [],
+        },
+        intro: "由“九个芒果”设计",
+        skills: {
+            PSsheming: {
+                enable: "phaseUse",
+                logAudio(event, player, name) {
+                    if (player.storage.PSsheming) {
+                        return ["ext:PS武将/audio/skill/PSsheming1"];
+                    }
+                    return ["ext:PS武将/audio/skill/PSsheming2"];
+                },
+                usable: 2,
+                zhuanhuanji: true,
+                mark: true,
+                marktext: "☯",
+                intro: {
+                    content(storage) {
+                        if (storage) {
+                            return "出牌阶段限两次，你可以交给至多两名其他角色各一张手牌，视为使用一张以这些角色为目标的【杀】，这些角色以此法获得的牌均视为不计入手牌上限的【杀】。";
+                        }
+                        return "出牌阶段限两次，你可以获得至多两名其他角色各一张手牌，然后视为使用一张【酒】，你以此法获得的牌均视为不计入手牌上限的【酒】。";
+                    },
+                },
+                filterCard(card, player) {
+                    if (player.storage.PSsheming) {
+                        return true;
+                    }
+                    return false;
+                },
+                selectCard(card) {
+                    const player = get.player();
+                    if (player.storage.PSsheming) {
+                        return [1, 2];
+                    }
+                    return 0;
+                },
+                check(card) {
+                    if (card.hasGaintag("PSsheming_jiu")) return 2 - get.value(card);
+                    return 6 - get.value(card);
+                },
+                position: "h",
+                filterTarget(card, player, target) {
+                    if (player.storage.PSsheming) return target !== player;
+                    return target !== player && target.countGainableCards(player, "h") > 0;
+                },
+                selectTarget() {
+                    const player = get.player();
+                    if (player.storage.PSsheming) return ui.selected.cards.length;
+                    return [1, 2];
+                },
+                delay: false,
+                discard: false,
+                lose: false,
+                complexSelect: true,
+                filterOk() {
+                    const player = get.player();
+                    if (player.storage.PSsheming) return ui.selected.targets.length == ui.selected.cards.length;
+                    return true;
+                },
+                multitarget: true,
+                multiline: true,
+                async content(event, trigger, player) {
+                    const targets = event.targets.sortBySeat();
+                    if (player.storage.PSsheming) {
+                        const list = [];
+                        for (let i = 0; i < targets.length; i++) {
+                            const target = targets[i];
+                            const card = event.cards[i];
+                            list.push([target, card]);
+                        }
+                        await game.loseAsync({
+                            gain_list: list,
+                            player: player,
+                            cards: event.cards,
+                            giver: player,
+                            animate: "giveAuto",
+                        }).setContent("gaincardMultiple");
+
+                        const use_card = new lib.element.VCard({ name: "sha", isCard: true });
+                        const use_targets = [];
+                        for (const [target, card] of list) {
+                            target.addSkill("PSsheming_sha");
+                            target.addGaintag(card, "PSsheming_sha");
+                            if (player.canUse(use_card, target, false)) {
+                                use_targets.push(target);
+                            }
+                        }
+                        await game.asyncDelay(0.5);
+                        await player.useCard(use_card, use_targets);
+                    } else {
+                        for (const target of targets) {
+                            const { cards } = await player.gainPlayerCard(target, "h", true);
+                            player.addGaintag(cards[0], "PSsheming_jiu");
+                        }
+                        await player.useCard({ name: "jiu", isCard: true }, player);
+                    }
+                    player.changeZhuanhuanji(event.name);
+                },
+                group: ["PSsheming_jiu"],
+                subSkill: {
+                    sha: {
+                        mod: {
+                            cardname(card) {
+                                if (get.itemtype(card) == "card" && card.hasGaintag("PSsheming_sha")) {
+                                    return "sha";
+                                }
+                            },
+                            ignoredHandcard(card, player) {
+                                if (card.hasGaintag("PSsheming_sha")) {
+                                    return true;
+                                }
+                            },
+                            cardDiscardable(card, player, name) {
+                                if (name == "phaseDiscard" && card.hasGaintag("PSsheming_sha")) {
+                                    return false;
+                                }
+                            },
+                        },
+                    },
+                    jiu: {
+                        mod: {
+                            cardname(card) {
+                                if (get.itemtype(card) == "card" && card.hasGaintag("PSsheming_jiu")) {
+                                    return "jiu";
+                                }
+                            },
+                            ignoredHandcard(card, player) {
+                                if (card.hasGaintag("PSsheming_jiu")) {
+                                    return true;
+                                }
+                            },
+                            cardDiscardable(card, player, name) {
+                                if (name == "phaseDiscard" && card.hasGaintag("PSsheming_jiu")) {
+                                    return false;
+                                }
+                            },
+                        },
+                    },
+                },
+                ai: {
+                    order: 9,
+                    threaten: 1,
+                    result: {
+                        target(player, target) {
+                            var num = get.sgn(get.attitude(player, target));
+                            var eff = get.effect(target, { name: "shunshou" }, player, player) * num;
+                            if (eff * num > 0) {
+                                return eff / 10;
+                            }
+                            return eff;
+                        },
+                    },
+                },
+            },
+            PSkuangli: {
+                audio: "ext:PS武将/audio/skill:2",
+                trigger: {
+                    player: "useCardAfter",
+                },
+                initSkill(skill) {
+                    if (!lib.skill[skill]) {
+                        lib.skill[skill] = lib.skill.fengyin;
+                        lib.translate[skill] = "封印";
+                        lib.translate[skill + "_bg"] = "封";
+                    }
+                },
+                forced: true,
+                filter(event, player) {
+                    return get.name(event.card) == "jiu";
+                },
+                content() {
+                    player.addTempSkill("PSkuangli_effect");
+                },
+                subSkill: {
+                    effect: {
+                        trigger: {
+                            player: "useCardToPlayered",
+                        },
+                        forced: true,
+                        popup: false,
+                        firstDo: true,
+                        charlotte: true,
+                        sourceSkill: "PSkuangli",
+                        async content(event, trigger, player) {
+                            player.removeSkill("PSkuangli_effect");
+                            const target = trigger.target;
+                            if (trigger.card.name == "sha") {
+                                player.addTempSkill("PSkuangli_clear");
+                                const skill = "PSkuangli_" + player.playerid + "_fengyin";
+                                game.broadcastAll(lib.skill.PSkuangli.initSkill, skill);
+                                target.addSkill(skill);
+                            }
+                        },
+                        mod: {
+                            cardUsable(card) {
+                                if (card.name == "sha") {
+                                    return Infinity;
+                                }
+                            },
+                            targetInRange(card) {
+                                if (card.name == "sha") {
+                                    return true;
+                                }
+                            },
+                        },
+                        mark: true,
+                        intro: {
+                            content: "使用【杀】无距离和次数限制，且目标非锁定技失效",
+                        },
+                    },
+                    clear: {
+                        trigger: {
+                            player: "useCardAfter",
+                        },
+                        forced: true,
+                        charlotte: true,
+                        popup: false,
+                        filter(event, player) {
+                            return get.name(event.card) === "sha";
+                        },
+                        content() {
+                            player.removeSkill("PSkuangli_clear");
+                        },
+                        priority: -1,
+                        onremove(player) {
+                            game.countPlayer2(function (current) {
+                                current.removeSkill("PSkuangli_" + player.playerid + "_fengyin");
+                            });
+                        },
+                    },
+                }
+            },
+            PSjinxi: {
+                audio: "ext:PS武将/audio/skill:2",
+                trigger: {
+                    player: "useCardAfter",
+                },
+                forced: true,
+                filter(event, player) {
+                    if (get.name(event.card) !== "sha") return false;
+                    var evt = player.getLastUsed(1);
+                    if (!evt) {
+                        return false;
+                    }
+                    return get.name(evt.card) === "jiu";
+                },
+                async content(event, trigger, player) {
+                    await player.draw();
+                    await player.loseHp();
+                    const stat = player.stat[player.stat.length - 1].card;
+                    if (typeof stat["jiu"] === "number") {
+                        stat["jiu"]--;
+                    }
+                },
+            },
+        },
+        sort: sort.PScharacter_shu,
+        translate: {
+            PSsb_zhangfei: "PS谋张飞",
+            PSsb_zhangfei_prefix: "PS谋",
+            PSsheming: "慑酩",
+            PSsheming_info: "转换技，出牌阶段限两次，阳：你可以获得至多两名其他角色各一张手牌，然后视为使用一张【酒】，你以此法获得的牌均视为不计入手牌上限的【酒】；阴：你可以交给至多两名其他角色各一张手牌，视为使用一张以这些角色为目标的【杀】，这些角色以此法获得的牌均视为不计入手牌上限的【杀】。",
+            PSkuangli: "狂醴",
+            PSkuangli_info: "锁定技，当你使用【酒】后，若你本回合使用的下一张牌为【杀】，你令此【杀】无距离和次数限制，且目标角色非锁定技失效直到此【杀】结算结束。",
+            PSjinxi: "烬息",
+            PSjinxi_info: "锁定技，当你使用【杀】后，若你本回合使用的上一张牌为【酒】，你摸一张牌并失去一点体力，然后你令此【酒】不计入本回合使用次数。",
+        },
+        dynamicTranslate: {
+            PSsheming: function (player) {
+                if (!player.storage.PSsheming) return '转换技，出牌阶段限两次，<span class="bluetext">阳：你可以获得至多两名其他角色各一张手牌，然后视为使用一张【酒】，你以此法获得的牌均视为不计入手牌上限的【酒】；</span>阴：你可以交给至多两名其他角色各一张手牌，视为使用一张以这些角色为目标的【杀】，这些角色以此法获得的牌均视为不计入手牌上限的【杀】。'
+                return '转换技，出牌阶段限两次，阳：你可以获得至多两名其他角色各一张手牌，然后视为使用一张【酒】，你以此法获得的牌均视为不计入手牌上限的【酒】；<span class="bluetext">阴：你可以交给至多两名其他角色各一张手牌，视为使用一张以这些角色为目标的【杀】，这些角色以此法获得的牌均视为不计入手牌上限的【杀】。</span>';
+            },
+        },
+        rank: rank.rare
+    },
+    PShanbingjiangirl: {
+        info: {
+            sex: "female",
+            group: "qun",
+            hp: 3,
+            skills: ["PShanying", "PSaoshuang", "PSdouxie"],
+            dieAudios: [],
+            trashBin: [],
+        },
+        PShanbingjiangirl: "由“一顿七只屑狐狸”设计",
+        skills: {
+            PShanying: {
+                trigger: {
+                    source: "damageBegin2",
+                },
+                audio: "hanbing_skill",
+                filter(event) {
+                    return event.card && event.card.name === "sha" && event.notLink() && event.player.getCards("he").length > 0;
+                },
+                check(event, player) {
+                    var target = event.player;
+                    var eff = get.damageEffect(target, player, player, event.nature);
+                    if (get.attitude(player, target) > 0) {
+                        if (
+                            eff >= 0 ||
+                            (event.nature &&
+                                target.isLinked() &&
+                                game.hasPlayer(cur => {
+                                    return cur !== target && cur.isLinked() && get.damageEffect(cur, player, player, event.nature) > 0;
+                                }))
+                        ) {
+                            return false;
+                        }
+                        return true;
+                    }
+                    if (eff <= 0) {
+                        return true;
+                    }
+                    if (target.hp === 1 || player.hasSkill("tianxianjiu")) {
+                        return false;
+                    }
+                    if (
+                        !target.hasSkillTag("filterDamage", null, {
+                            player: player,
+                            card: event.card,
+                            jiu: player.hasSkill("jiu"),
+                        })
+                    ) {
+                        if (
+                            event.num > 1 ||
+                            player.hasSkillTag("damageBonus", true, {
+                                player: player,
+                                card: event.card,
+                            })
+                        ) {
+                            return false;
+                        }
+                    }
+                    if (target.countCards("he") < 2) {
+                        return false;
+                    }
+                    var num = 0;
+                    var cards = target.getCards("he");
+                    for (var i = 0; i < cards.length; i++) {
+                        if (get.value(cards[i]) > 6) {
+                            num++;
+                        }
+                    }
+                    if (num >= 2) {
+                        return true;
+                    }
+                    return false;
+                },
+                logTarget: "player",
+                prompt2(event, player) {
+                    const count = lib.skill.PShanying.getShaCount();
+                    const num = Math.min(event.player.countDiscardableCards(player, "he"), count);
+                    return `防止对${get.translation(event.player)}伤害，然后弃置${get.translation(event.player)}至多${get.cnNumber(num)}张牌？`
+                },
+                getShaCount() {
+                    let count = 0;
+                    for (let i = 0; i < ui.discardPile.childNodes.length; i++) {
+                        let card = ui.discardPile.childNodes[i];
+                        if (get.name(card) === "sha") {
+                            count++;
+                        }
+                    }
+                    return count;
+                },
+                async content(event, trigger, player) {
+                    await trigger.cancel();
+                    const count = lib.skill.PShanying.getShaCount();
+                    const num = Math.min(trigger.player.countDiscardableCards(player, "he"), count);
+                    if (num) {
+                        player.line(trigger.player);
+                        player.discardPlayerCard("he", trigger.player, [1, num], true);
+                    }
+                }
+            },
+            PSaoshuang: {
+                audio: 2,
+                trigger: {
+                    global: ["loseAfter", "loseAsyncAfter"],
+                },
+                audio: "dchanying",
+                forced: true,
+                filter(event, player) {
+                    if (player != _status.currentPhase) {
+                        return false;
+                    }
+                    return event.type == "discard" && event.getl(event.player).cards2.length > 0;
+                },
+                async content(event, trigger, player) {
+                    const target = trigger.player;
+                    const count = lib.skill.PShanying.getShaCount();
+                    const list = [`令${get.translation(trigger.player)}受到一点无来源伤害`, `摸${get.cnNumber(count)}张牌`];
+                    const { result: { index } } = await player.chooseControlList(list, false).set("ai", function (event, player) {
+                        const damageEff = get.damageEffect(target, player, player);
+                        if (!count && damageEff > 0) return 0;
+                        if (target.hp <= 1 && damageEff > 0) return 0;
+                        if (count >= 2) return 1;
+                        if (get.attitude(player, target) <= 0 && damageEff > 0) return 0;
+                        return 1;
+                    });
+                    switch (index) {
+                        case 0: {
+                            await target.damage("nosource");
+                            break;
+                        }
+                        case 1: {
+                            await player.draw(count);
+                            break;
+                        };
+                    }
+                },
+            },
+            PSdouxie: {
+                enable: "phaseUse",
+                audio: "qingleng",
+                get usable() {
+                    return lib.skill.PShanying.getShaCount();
+                },
+                viewAs: {
+                    name: "sha",
+                    isCard: true,
+                    nature: "ice",
+                    storage: {
+                        PSdouxie: true,
+                    },
+                },
+                mod: {
+                    cardUsable: function (card) {
+                        if (card.storage && card.storage.PSdouxie)
+                            return Infinity;
+                    },
+                },
+                selectCard: -1,
+                filterCard: () => false,
+                selectTarget: 1,
+                filterTarget(card, player, target) {
+                    return player !== target;
+                },
+                async precontent(event, trigger, player) {
+                    if (event.getParent().addCount !== false) {
+                        event.getParent().addCount = false;
+                    }
+                },
+                async content(event, trigger, player) {
+                    const card = { name: "sha", nature: "ice", isCard: true };
+                    player.useCard(card, event.target, false);
+                },
+                ai: {
+                    order() {
+                        return get.order({ name: "sha" }) + 0.1;
+                    },
+                    threaten: 114514,
+                    yingbian(card, player, targets, viewer) {
+                        if (get.attitude(viewer, player) <= 0) {
+                            return 0;
+                        }
+                        var base = 0,
+                            hit = false;
+                        if (get.cardtag(card, "yingbian_hit")) {
+                            hit = true;
+                            if (
+                                targets.some(target => {
+                                    return target.mayHaveShan(viewer, "use") && get.attitude(viewer, target) < 0 && get.damageEffect(target, player, viewer, get.natureList(card)) > 0;
+                                })
+                            ) {
+                                base += 5;
+                            }
+                        }
+                        if (get.cardtag(card, "yingbian_add")) {
+                            if (
+                                game.hasPlayer(function (current) {
+                                    return !targets.includes(current) && lib.filter.targetEnabled2(card, player, current) && get.effect(current, card, player, player) > 0;
+                                })
+                            ) {
+                                base += 5;
+                            }
+                        }
+                        if (get.cardtag(card, "yingbian_damage")) {
+                            if (
+                                targets.some(target => {
+                                    return (
+                                        get.attitude(player, target) < 0 &&
+                                        (hit ||
+                                            !target.mayHaveShan(viewer, "use") ||
+                                            player.hasSkillTag(
+                                                "directHit_ai",
+                                                true,
+                                                {
+                                                    target: target,
+                                                    card: card,
+                                                },
+                                                true
+                                            )) &&
+                                        !target.hasSkillTag("filterDamage", null, {
+                                            player: player,
+                                            card: card,
+                                            jiu: true,
+                                        })
+                                    );
+                                })
+                            ) {
+                                base += 5;
+                            }
+                        }
+                        return base;
+                    },
+                    canLink(player, target, card) {
+                        if (!target.isLinked() && !player.hasSkill("wutiesuolian_skill")) {
+                            return false;
+                        }
+                        if (player.hasSkill("jueqing") || player.hasSkill("gangzhi") || target.hasSkill("gangzhi")) {
+                            return false;
+                        }
+                        let obj = {};
+                        if (get.attitude(player, target) > 0 && get.attitude(target, player) > 0) {
+                            if (
+                                (player.hasSkill("jiu") ||
+                                    player.hasSkillTag("damageBonus", true, {
+                                        target: target,
+                                        card: card,
+                                    })) &&
+                                !target.hasSkillTag("filterDamage", null, {
+                                    player: player,
+                                    card: card,
+                                    jiu: player.hasSkill("jiu"),
+                                })
+                            ) {
+                                obj.num = 2;
+                            }
+                            if (target.hp > obj.num) {
+                                obj.odds = 1;
+                            }
+                        }
+                        if (!obj.odds) {
+                            obj.odds = 1 - target.mayHaveShan(player, "use", true, "odds");
+                        }
+                        return obj;
+                    },
+                    basic: {
+                        useful: [5, 3, 1],
+                        value: [5, 3, 1],
+                    },
+                    result: {
+                        target(player, target, card, isLink) {
+                            let eff = -1.5,
+                                odds = 1.35,
+                                num = 1;
+                            if (isLink) {
+                                eff = isLink.eff || -2;
+                                odds = isLink.odds || 0.65;
+                                num = isLink.num || 1;
+                                if (
+                                    num > 1 &&
+                                    target.hasSkillTag("filterDamage", null, {
+                                        player: player,
+                                        card: card,
+                                        jiu: player.hasSkill("jiu"),
+                                    })
+                                ) {
+                                    num = 1;
+                                }
+                                return odds * eff * num;
+                            }
+                            if (
+                                player.hasSkill("jiu") ||
+                                player.hasSkillTag("damageBonus", true, {
+                                    target: target,
+                                    card: card,
+                                })
+                            ) {
+                                if (
+                                    target.hasSkillTag("filterDamage", null, {
+                                        player: player,
+                                        card: card,
+                                        jiu: player.hasSkill("jiu"),
+                                    })
+                                ) {
+                                    eff = -0.5;
+                                } else {
+                                    num = 2;
+                                    if (get.attitude(player, target) > 0) {
+                                        eff = -7;
+                                    } else {
+                                        eff = -4;
+                                    }
+                                }
+                            }
+                            if (
+                                !player.hasSkillTag(
+                                    "directHit_ai",
+                                    true,
+                                    {
+                                        target: target,
+                                        card: card,
+                                    },
+                                    true
+                                )
+                            ) {
+                                odds -= 0.7 * target.mayHaveShan(player, "use", true, "odds");
+                            }
+                            _status.event.putTempCache("sha_result", "eff", {
+                                bool: target.hp > num && get.attitude(player, target) > 0,
+                                card: ai.getCacheKey(card, true),
+                                eff: eff,
+                                odds: odds,
+                            });
+                            return odds * eff;
+                        },
+                    },
+                    tag: {
+                        respond: 1,
+                        respondShan: 1,
+                        damage(card) {
+                            if (game.hasNature(card, "poison")) {
+                                return;
+                            }
+                            return 1;
+                        },
+                        natureDamage(card) {
+                            if (game.hasNature(card, "linked")) {
+                                return 1;
+                            }
+                        },
+                        fireDamage(card, nature) {
+                            if (game.hasNature(card, "fire")) {
+                                return 1;
+                            }
+                        },
+                        thunderDamage(card, nature) {
+                            if (game.hasNature(card, "thunder")) {
+                                return 1;
+                            }
+                        },
+                        poisonDamage(card, nature) {
+                            if (game.hasNature(card, "poison")) {
+                                return 1;
+                            }
+                        },
+                    },
+                },
+            },
+        },
+        sort: sort.PScharacter_qun,
+        translate: {
+            PShanying: "寒英",
+            PShanying_info: "你即将造成伤害时，你可以防止此伤害并弃置该角色至多X张牌（X弃牌堆中“杀”的数量）。",
+            PSaoshuang: "傲霜",
+            PSaoshuang_info: "一名角色于你的回合被弃置牌后，你可以选择一项；1，该角色受到一点无来源的伤害：2，你摸X张牌（X弃牌堆中“杀”的数量）。",
+            PSdouxie: "斗雪",
+            PSdouxie_info: "出牌阶段限X次，你可以视为对一名其他角色使用一张“冰”杀（不计入使用次数且无次数限制，X弃牌堆中“杀”的数量）。",
+        },
+        rank: rank.legend
     }
 }
